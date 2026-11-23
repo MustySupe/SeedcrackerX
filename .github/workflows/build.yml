@@ -14,6 +14,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v3
     - name: Set up JDK 21
@@ -28,6 +30,26 @@ jobs:
       run: |
         ./gradlew build
     
+    - name: Inspect jar
+      run: |
+        for f in build/libs/*.jar; do echo "== $f"; done
+        J=$(ls build/libs/*.jar | grep -v -E -- '-(dev|api|sources)\.jar$' | head -1)
+        echo "FINAL=$J"
+        unzip -l "$J" | grep -E "ui/|PauseScreenMixin|SeedSaver|StructureLocator"
+        unzip -p "$J" fabric.mod.json | grep -E '"version"|"minecraft"'
+        unzip -p "$J" META-INF/MANIFEST.MF | grep -i minecraft
+        unzip -p "$J" seedcracker.mixins.json | grep Pause
+
+    - name: Publish phone build as release
+      if: github.ref == 'refs/heads/mc-1.21.11'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        J=$(ls build/libs/*.jar | grep -v -E -- '-(dev|api|sources)\.jar$' | head -1)
+        cp "$J" /tmp/seedcrackerX-phone.jar
+        gh release delete phone-latest --yes --cleanup-tag || true
+        gh release create phone-latest /tmp/seedcrackerX-phone.jar --target mc-1.21.11 --prerelease --title "SeedCrackerX phone build (1.21.11)" --notes "Build for Minecraft 1.21.11 with touch panel, seed saving, structures list."
+
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       if: github.ref != format('refs/heads/{0}', github.event.repository.default_branch) # Only runs if this CI was NOT triggered by the default branch
