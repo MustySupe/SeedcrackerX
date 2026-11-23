@@ -4,6 +4,7 @@ import kaptainwutax.seedcrackerX.SeedCracker;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 
 import java.io.IOException;
@@ -47,11 +48,44 @@ public class SeedSaver {
             String line = LocalDateTime.now().format(TIME) + "\t" + kind + "\t" + seed + System.lineSeparator();
             Files.writeString(file, line, StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            if (kind.equals("world")) {
+                findStructures(seed, file);
+            }
             return true;
         } catch (IOException e) {
             SeedCracker.LOGGER.warn("Could not save the seed to a file", e);
             return false;
         }
+    }
+
+    /**
+     * Calculates the nearest structures for a freshly found world seed, writes them to the chat and the file.
+     */
+    private static void findStructures(long worldSeed, Path file) {
+        Minecraft mc = Minecraft.getInstance();
+        int px = mc.player == null ? 0 : (int) mc.player.getX();
+        int pz = mc.player == null ? 0 : (int) mc.player.getZ();
+
+        StructureLocator.compute(worldSeed, px, pz, () -> {
+            if (StructureLocator.getError() != null || !StructureLocator.hasResult()) return;
+            String text = StructureLocator.asText();
+            if (text.isEmpty()) return;
+
+            try {
+                Files.writeString(file, "Structures near " + px + " " + pz + ":" + System.lineSeparator() + text,
+                        StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            } catch (IOException e) {
+                SeedCracker.LOGGER.warn("Could not save the structures to a file", e);
+            }
+
+            mc.execute(() -> {
+                if (mc.player == null) return;
+                mc.player.displayClientMessage(Component.literal("Ближайшие структуры:"), false);
+                for (StructureLocator.Found f : StructureLocator.getResult()) {
+                    mc.player.displayClientMessage(Component.literal(f.format()), false);
+                }
+            });
+        });
     }
 
     public static Path getFile() {
