@@ -88,6 +88,7 @@
   "fungus.gotStructureSeeds": "найден структурный сид:",
   "fungus.usableAsWorldSeed": "этот структурный сид используется как сид мира",
   "database.success": "успешная отправка сида в базу данных",
-  "database.fail": "провальная отправка сида в базу данных"
+  "database.fail": "провальная отправка сида в базу данных",
+  "seedSavedToFile": "Сид сохранён в файл: %s"
 
 }

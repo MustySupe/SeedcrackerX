@@ -59,6 +59,12 @@ public class Log {
             }
             schedule(() -> player.displayClientMessage(text1, false));
         }
+
+        // save the seed into a file and play a sound
+        boolean saved = SeedSaver.onSeed(translateKey, seedValue);
+        if (saved && translateKey.contains("WorldSeed")) {
+            warn("seedSavedToFile", "config/seedcrackerx/found_seeds.txt");
+        }
     }
 
     public static void printDungeonInfo(String message) {

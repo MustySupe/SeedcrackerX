@@ -90,6 +90,7 @@
   "fungus.gotStructureSeeds": "got structure seeds:",
   "fungus.usableAsWorldSeed": "this structure seed is also usable as worldseed",
   "database.success": "sent seed to database successfully",
-  "database.fail": "failed to send the seed to database"
+  "database.fail": "failed to send the seed to database",
+  "seedSavedToFile": "Seed saved to file: %s"
 
 }
